@@ -72,14 +72,14 @@ class AdjacentWords extends StatelessWidget {
 }
 
 class AdjacentDisplay extends StatelessWidget {
-  AdjacentDisplay({
+  const AdjacentDisplay({
     super.key,
     required this.word,
     required this.goToPage,
     this.hasComma = false,
   });
-  bool hasComma;
-  WordItem? word;
+  final bool hasComma;
+  final WordItem? word;
   final void Function(int) goToPage;
 
   @override

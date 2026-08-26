@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uchinaguchi_jisho/data/fav_provider.dart';
 import 'package:uchinaguchi_jisho/data/new_db_provider.dart';
+import 'package:uchinaguchi_jisho/data/services/share_service.dart';
 import 'package:uchinaguchi_jisho/models/word_item.dart';
+import 'package:uchinaguchi_jisho/screens/share_screen.dart';
 import 'package:uchinaguchi_jisho/widgets/entry_widget.dart';
+import 'package:uchinaguchi_jisho/widgets/icons/saved_icon.dart';
 
 class EntryScreen extends ConsumerStatefulWidget {
   const EntryScreen({super.key, required this.word});
@@ -11,11 +14,11 @@ class EntryScreen extends ConsumerStatefulWidget {
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() {
-    return _newEntryScreen();
+    return _EntryScreen();
   }
 }
 
-class _newEntryScreen extends ConsumerState<EntryScreen> {
+class _EntryScreen extends ConsumerState<EntryScreen> {
   late final PageController _pageController;
   bool _isFavourite = false;
   late int _currentPageIndex;
@@ -68,10 +71,19 @@ class _newEntryScreen extends ConsumerState<EntryScreen> {
     final favNotifier = ref.read(favouritesProvider.notifier);
     if (_isFavourite) {
       await favNotifier.removeFavWord(currentWord);
-      if (mounted) setState(() => _isFavourite = true);
+      if (mounted) setState(() => _isFavourite = false);
     } else {
       await favNotifier.addFavouriteWord(currentWord);
       if (mounted) setState(() => _isFavourite = true);
+    }
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_isFavourite ? '言葉を保存しました' : '言葉を保存リストから削除しました'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -101,15 +113,18 @@ class _newEntryScreen extends ConsumerState<EntryScreen> {
         actions: [
           IconButton(
             onPressed: () => _toggleFavourite(activeWord),
-            icon: Icon(
-              _isFavourite
-                  ? Icons.bookmark_added_sharp
-                  : Icons.bookmark_outline_sharp,
-            ),
+            icon: SavedIcon(currentWord: activeWord, isFavourite: _isFavourite),
           ),
           IconButton(
             onPressed: () {
-              // TODO: Implement share functionality
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => InstagramShareScreen(
+                    shareService: SystemShareService(),
+                    word: widget.word,
+                  ),
+                ),
+              );
             },
             icon: const Icon(Icons.share),
           ),

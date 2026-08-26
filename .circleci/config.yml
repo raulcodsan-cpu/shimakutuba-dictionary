@@ -25,16 +25,19 @@ jobs:
       - run:
           name: "Authenticate & Deploy to Firebase"
           command: |
-            # 1. Write the securely stored JSON variable into a temporary file
+            # 1. Extract the latest git commit message into a text file safely
+            git log -1 --pretty=%B > release_notes.txt
+
+            # 2. Write the securely stored JSON variable into a temporary file
             echo $GOOGLE_CREDENTIALS > google-credentials.json
             
-            # 2. Tell Google's libraries where to find the auth file
+            # 3. Tell Google's libraries where to find the auth file
             export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/google-credentials.json
             
-            # 3. Deploy the compiled artifact
+            # 4. Deploy the compiled artifact
             firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
               --app $FIREBASE_APP_ID \
-              --release-notes "Automated build triggered via CircleCI." \
+              --release-notes-file release_notes.txt \
               --groups "qa-testers" 
 
 workflows:
