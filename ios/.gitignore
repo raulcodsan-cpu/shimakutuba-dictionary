@@ -1,0 +1,8 @@
+Flutter/
+Runner.xcodeproj/
+Runner.xcworkspace/
+RunnerTests/
+Runner/*
+
+#Necessary for sharing deeplinks
+!Runner/Info.plist

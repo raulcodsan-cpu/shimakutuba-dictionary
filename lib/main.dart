@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uchinaguchi_jisho/screens/favourites_screen.dart';
+import 'package:uchinaguchi_jisho/data/services/deep_link_service.dart';
+import 'package:uchinaguchi_jisho/data/services/share_service.dart';
+import 'package:uchinaguchi_jisho/models/word_item.dart';
+import 'package:uchinaguchi_jisho/screens/entry_screen.dart';
 import 'package:uchinaguchi_jisho/screens/search_screen.dart';
 
 final theme = ThemeData(
@@ -45,22 +48,57 @@ final theme = ThemeData(
   ),
 );
 
-void main() {
-  runApp(ProviderScope(child: MainApp()));
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(ProviderScope(child: const MainApp()));
 }
 
-class MainApp extends StatelessWidget {
+class MainApp extends StatefulWidget {
   const MainApp({super.key});
+
+  @override
+  State<MainApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MainApp> {
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  final DeeplinkService _deeplinkService = DeeplinkService();
+  final IWordLinkService _linkShareService = WordLinkService();
+
+  @override
+  void initState() {
+    _initDeepLinks();
+    super.initState();
+  }
+
+  void _initDeepLinks() {
+    _deeplinkService.init();
+
+    // When a link event is received, push WordScreen.
+    _deeplinkService.onWordReceived.listen((WordItem wordItemEvent) {
+      _navigatorKey.currentState?.push(
+        MaterialPageRoute(
+          builder: (context) => EntryScreen(
+            word: wordItemEvent,
+            linkShareService: _linkShareService,
+          ),
+        ),
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _deeplinkService.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: _navigatorKey,
       theme: theme,
-      initialRoute: 'SearchScreen',
-      routes: {
-        'SearchScreen': (context) => SearchScreen(),
-        'FavouritesScreen': (context) => FavouritesScreen(),
-      },
+      home: SearchScreen(linkShareService: _linkShareService),
     );
   }
 }

@@ -3,13 +3,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uchinaguchi_jisho/data/new_db_provider.dart';
+import 'package:uchinaguchi_jisho/data/services/deep_link_service.dart';
+import 'package:uchinaguchi_jisho/data/services/share_service.dart';
 import 'package:uchinaguchi_jisho/models/word_item.dart';
 import 'package:uchinaguchi_jisho/screens/favourites_screen.dart';
 import 'package:uchinaguchi_jisho/screens/entry_screen.dart';
 import 'package:uchinaguchi_jisho/widgets/search_entry.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
-  const SearchScreen({super.key});
+  const SearchScreen({super.key, required this.linkShareService});
+  final IWordLinkService linkShareService;
 
   @override
   ConsumerState<SearchScreen> createState() => _SearchScreenState();
@@ -79,7 +82,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 Navigator.of(context).push(
                   DialogRoute(
                     context: context,
-                    builder: (context) => FavouritesScreen(),
+                    builder: (context) => FavouritesScreen(
+                      linkShareService: widget.linkShareService,
+                    ),
                   ),
                 );
               },
@@ -134,7 +139,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           //ref.read(selectedWordProvider.notifier).select(word);
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => EntryScreen(word: word),
+                              builder: (context) => EntryScreen(
+                                word: word,
+                                linkShareService: widget.linkShareService,
+                              ),
                             ),
                           );
                         },

@@ -16,7 +16,6 @@ migrate_working_dir/
 /linux/
 #/android/ un-ignored for Firebase Deployment
 /web/
-/ios/
 /linux/
 
 # IntelliJ related

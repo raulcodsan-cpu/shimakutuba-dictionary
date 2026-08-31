@@ -6,7 +6,7 @@ import 'package:uchinaguchi_jisho/models/word_item.dart';
 import 'package:uchinaguchi_jisho/widgets/icons/share_content_card.dart';
 
 class InstagramShareScreen extends StatefulWidget {
-  final IShareService shareService;
+  final IShareInstaService shareService;
   final WordItem word;
 
   const InstagramShareScreen({

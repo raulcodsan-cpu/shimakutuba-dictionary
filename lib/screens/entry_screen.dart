@@ -9,8 +9,13 @@ import 'package:uchinaguchi_jisho/widgets/entry_widget.dart';
 import 'package:uchinaguchi_jisho/widgets/icons/saved_icon.dart';
 
 class EntryScreen extends ConsumerStatefulWidget {
-  const EntryScreen({super.key, required this.word});
+  const EntryScreen({
+    super.key,
+    required this.word,
+    required this.linkShareService,
+  });
   final WordItem word;
+  final IWordLinkService linkShareService;
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() {
@@ -87,6 +92,74 @@ class _EntryScreen extends ConsumerState<EntryScreen> {
     }
   }
 
+  // Share pop-up anchoring for IOS ---------------------------
+  //Calculate the on-screen position and size of widget, returned as Rect.
+  Rect? _calculateOrigin(BuildContext context) {
+    final box =
+        context.findRenderObject() as RenderBox?; //Finds layout box (RenderBox)
+    return (box != null && box.hasSize) //Check if rendered.
+        ? box.localToGlobal(Offset.zero) &
+              box
+                  .size //Calculate top-left corner pos. to entire screen.
+        // & box.size: Combines the top-left (X, Y) position with the widget's width and height using Flutter's & operator to construct a Rect object: Rect.fromLTWH(x, y, width, height).
+        : null;
+  }
+
+  //----------------------------------------------------------
+  // Popup dialog for share actions --------------------------
+  Future<void> _showShareDialog(BuildContext buttonContext) async {
+    final Rect? origin = _calculateOrigin(buttonContext);
+
+    return showDialog(
+      context: buttonContext,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('言葉をシェア'),
+          content: Text('言葉のシェア方法を選択してください:\n ${widget.word.kana}'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                Navigator.of(buttonContext).push(
+                  MaterialPageRoute(
+                    builder: (context) => InstagramShareScreen(
+                      shareService: SystemShareService(),
+                      word: widget.word,
+                    ),
+                  ),
+                );
+              },
+              child: Text(
+                'カードをシェア',
+                style: Theme.of(
+                  context,
+                ).textTheme.headlineMedium!.copyWith(fontSize: 15),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                widget.linkShareService.shareWord(
+                  widget.word,
+                  sharePositionOrigin: origin,
+                );
+              },
+              child: Text(
+                'リンクをシェア',
+                style: Theme.of(
+                  context,
+                ).textTheme.headlineMedium!.copyWith(fontSize: 15),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  //----------------------------------------------------------
+
+  // Disposal -------------------------------------------------
   @override
   void dispose() {
     _pageController.dispose();
@@ -115,18 +188,15 @@ class _EntryScreen extends ConsumerState<EntryScreen> {
             onPressed: () => _toggleFavourite(activeWord),
             icon: SavedIcon(currentWord: activeWord, isFavourite: _isFavourite),
           ),
-          IconButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => InstagramShareScreen(
-                    shareService: SystemShareService(),
-                    word: widget.word,
-                  ),
-                ),
+          Builder(
+            builder: (buttonContext) {
+              return IconButton(
+                onPressed: () {
+                  _showShareDialog(buttonContext);
+                },
+                icon: const Icon(Icons.share),
               );
             },
-            icon: const Icon(Icons.share),
           ),
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
