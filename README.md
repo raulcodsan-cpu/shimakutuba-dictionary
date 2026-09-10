@@ -1,3 +1,3 @@
 # uchinaguchi_jisho
 
-A new Flutter project.
+## Okinawan->Japanese dictionary for cultural conservation.
